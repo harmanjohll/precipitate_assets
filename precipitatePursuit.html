@@ -2,248 +2,166 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Precipitate Pursuit – QA Edition (v3.13b)</title>
-  <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Precipitate Pursuit – Gameplay Edition</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
-    /* Global Reset */
-    *, *::before, *::after { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; font-family: 'Roboto', sans-serif; }
-    body {
-      background: linear-gradient(135deg, #f6d365, #fda085);
-      padding: 10px;
+    :root {
+      --board-size: 500px;
     }
-    /* Main container using grid layout */
-    .game-container {
-      display: grid;
-      grid-template-rows: auto auto auto auto auto;
-      gap: 20px;
-      max-width: 1200px;
-      margin: 0 auto;
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-      padding: 20px;
-    }
-    header h1 { font-size: 2rem; margin-bottom: 5px; color: #333; text-align: center; }
-    header p { font-size: 1rem; margin-bottom: 20px; color: #666; text-align: center; }
-    /* Name Entry */
-    #name-entry { text-align: center; margin-bottom: 20px; }
-    #name-entry label, #name-entry input, #name-entry select, #name-entry button {
-      font-size: 1rem; margin: 5px;
-    }
-    input, select { padding: 5px; border: 1px solid #ccc; border-radius: 5px; }
-    button {
-      padding: 8px 16px; border: none; border-radius: 8px;
-      background-color: #4CAF50; color: white; cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-    button:hover { background-color: #45a049; }
-    /* Players grids for top and bottom rows */
-    .players-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-    }
-    /* Each player seat */
-    .player-seat {
-      background: #fafafa; border: 1px solid #ddd; border-radius: 8px;
-      padding: 10px; display: flex; flex-direction: column; align-items: center;
-      transition: background-color 0.3s ease;
-    }
-    /* Active player highlighted in green */
-    .player-seat.active-player { background-color: lightgreen; }
-    .player-name { font-weight: 700; margin-bottom: 5px; color: #333; }
-    /* Player Hand Container */
-    .hand {
-      width: 100%; height: 210px; background: #f9f9f9;
-      border-radius: 5px; padding: 5px;
-      display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      grid-template-rows: repeat(2, 105px);
-      gap: 4px;
-    }
-    .hand > .card { justify-self: center; align-self: center; }
-    /* Middle row: pending set container + gamelog */
-    .middle-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      height: 150px;
-    }
-    /* Pending set container */
-    .pending-set-container {
-      width: 100%; height: 100%;
-      border: 2px dashed #666; border-radius: 8px;
-      background: #f0f0f0; padding: 5px;
-      display: flex; flex-direction: column; justify-content: center; align-items: center;
-    }
-    /* Container for cards inside pending set */
-    .pending-set {
-      display: flex; gap: 5px; overflow-x: auto;
-      margin-bottom: 5px; width: 100%;
-    }
-    .mini-card {
-      width: 45px; height: 70px; border: 1px solid #aaa;
-      border-radius: 3px; overflow: hidden; flex-shrink: 0;
-    }
-    .mini-card img { width: 100%; height: 100%; object-fit: contain; }
-    /* Gamelog container */
-    .game-log {
-      width: 100%; height: 100%;
-      border: 2px solid #ccc; border-radius: 8px;
-      background: #fff; padding: 5px; overflow-y: auto;
-    }
-    .game-log h2 { font-size: 1rem; margin: 0 0 5px 0; text-align: center; }
-    /* Dummy element for scrolling */
-    #dummy { height: 1px; }
-    /* Countdown styling */
-    #countdown { font-size: 1.2rem; font-weight: bold; color: #d9534f; }
-    /* Controls */
-    #controls { text-align: center; padding-bottom: 20px; }
-    /* Card styling */
+    body { font-family: 'Inter', sans-serif; background-color: #1f2937; }
+    .game-log::-webkit-scrollbar { width: 8px; }
+    .game-log::-webkit-scrollbar-track { background: #374151; border-radius: 10px; }
+    .game-log::-webkit-scrollbar-thumb { background: #6b7280; border-radius: 10px; }
+    .game-log::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
     .card {
-      border: 1px solid #aaa; border-radius: 5px;
-      background: #e0e0e0; padding: 5px;
-      cursor: pointer; user-select: none;
-      width: 70px; height: 105px; margin: 3px; position: relative; z-index: 10;
+        transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+        height: calc(var(--board-size) * 0.13); 
+        aspect-ratio: 80/112;
     }
-    .card.selected { border: 2px solid #4CAF50; background: #d0ffd0; }
-    .card img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
-    @media (max-width: 768px) {
-      .game-container { grid-template-rows: auto auto auto auto auto; }
-      .players-grid { grid-template-columns: 1fr; }
-      .middle-row { grid-template-columns: 1fr; }
+
+    #player-0-hand .card:hover {
+        transform: translateY(-16px) scale(1.05);
+        z-index: 50;
+    }
+    
+    .card.selected {
+        transform: translateY(-24px) scale(1.05) !important;
+        box-shadow: 0 0 20px 5px rgba(74, 222, 128, 0.6);
     }
   </style>
 </head>
-<body>
-  <div class="game-container">
-    <!-- Header & Name Entry -->
-    <header>
-      <h1>Precipitate Pursuit – QA Edition</h1>
-      <p>Form valid sets (precipitates) to lose your cards as quickly as possible!</p>
-    </header>
-    <div id="name-entry" class="section">
-      <label for="player-name">Your Name:</label>
-      <input type="text" id="player-name" placeholder="Enter your name">
-      <label for="difficulty">Difficulty:</label>
-      <select id="difficulty">
-        <option value="beginner">Beginner</option>
-        <option value="intermediate">Intermediate</option>
-        <option value="advanced">Advanced</option>
-      </select>
-      <button id="start-game-button">Start Game</button>
-    </div>
-    <!-- Top Row Players -->
-    <div id="players-top" class="players-grid section">
-      <div class="player-seat" id="player-1">
-        <div class="player-name" id="name-1">Alice</div>
-        <div class="hand" id="hand-1"></div>
+<body class="text-gray-200 flex flex-col items-center justify-center min-h-screen p-2 md:p-4 overflow-hidden">
+
+  <!-- Name Entry Screen (Initially Visible) -->
+  <div id="name-entry-screen" class="w-full max-w-md mx-auto">
+      <div class="bg-gray-800 rounded-2xl shadow-2xl p-8 text-center">
+          <h1 class="text-3xl sm:text-4xl font-bold text-white mb-2">Precipitate Pursuit</h1>
+          <p class="text-gray-400 mb-6">Enter your name and choose a difficulty to begin.</p>
+          <div class="flex flex-col items-center justify-center gap-4">
+              <input type="text" id="player-name" placeholder="Enter your name" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+              <select id="difficulty" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                  <option value="beginner">Beginner</option>
+                  <option value="intermediate">Intermediate</option>
+                  <option value="advanced" selected>Advanced</option>
+              </select>
+              <button id="start-game-button" class="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-all duration-300">Start Game</button>
+          </div>
       </div>
-      <div class="player-seat" id="player-2">
-        <div class="player-name" id="name-2">Beth</div>
-        <div class="hand" id="hand-2"></div>
-      </div>
-    </div>
-    <!-- Middle Row: Pending Set and Gamelog -->
-    <div class="middle-row">
-      <div class="pending-set-container" id="common-table">
-        <div class="pending-set" id="pending-set"></div>
-        <div id="countdown"></div>
-      </div>
-      <div class="game-log">
-        <h2>Game Log</h2>
-        <div id="log">
-          <p><em>Game log...</em></p>
-          <div id="dummy"></div>
+  </div>
+
+  <!-- Main Game Board (Hidden by default) -->
+  <div id="game-container" class="hidden w-full h-full flex-grow flex flex-col">
+    <div id="game-board-wrapper" class="flex-grow relative flex items-center justify-center">
+        <div id="game-board" class="relative w-[90vmin] h-[90vmin] max-w-xl max-h-xl">
+            <!-- Central Table Area -->
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%] h-[70%] rounded-3xl bg-yellow-700 shadow-2xl flex items-center justify-center p-[25px] md:p-[35px]">
+                <div class="w-full h-full bg-green-800 rounded-2xl flex flex-col items-center justify-center gap-1 p-4 overflow-hidden">
+                    <!-- Top 40%: Pending Set & Deck -->
+                    <div class="w-full h-[40%] flex justify-center items-center text-center text-white">
+                        <div class="w-3/4 h-full p-1 flex flex-col items-center">
+                           <h3 class="font-bold text-sm md:text-base">Pending Set</h3>
+                           <div id="pending-set" class="flex flex-wrap justify-center items-center gap-2 mt-1 flex-grow"></div>
+                           <div id="countdown" class="font-mono text-xs md:text-sm font-bold"></div>
+                        </div>
+                         <div class="w-px h-3/4 bg-white/30"></div>
+                        <div id="deck-pile" class="w-1/4 h-full flex flex-col items-center justify-center">
+                            <img id="deck-image" src="https://raw.githubusercontent.com/harmanjohll/precipitate_assets/baf7839f5252ad2d888c97562683c1aac1e54254/images/back-of-card.png" class="h-16 shadow-lg rounded-md">
+                            <div id="deck-counter" class="font-bold text-sm mt-1">Deck: 0</div>
+                        </div>
+                    </div>
+                    <!-- Divider -->
+                    <div class="h-px w-3/4 bg-white/30"></div>
+                    <!-- Middle 40%: Game Log -->
+                    <div class="w-full h-[40%] p-1 flex flex-col text-white">
+                        <h3 class="font-bold text-sm md:text-base text-center">Game Log</h3>
+                        <div id="log" class="game-log flex-grow h-full overflow-y-auto space-y-1 text-xs pr-2 text-center"></div>
+                    </div>
+                    <!-- Bottom 20%: Controls -->
+                    <div id="controls-area" class="w-full h-[20%] pt-2 flex justify-center items-center gap-2 md:gap-4 border-t border-white/30">
+                         <button id="form-set-button" class="px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300">Form Set</button>
+                         <button id="skip-turn-button" class="px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm bg-yellow-500 text-white font-semibold rounded-lg shadow-md hover:bg-yellow-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300">Draw & Skip</button>
+                         <button id="sabotage-button" class="px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300">Sabotage</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Player Name Tags on the border -->
+            <div id="player-0-name" class="player-name-tag absolute"></div>
+            <div id="player-1-name" class="player-name-tag absolute"></div>
+            <div id="player-2-name" class="player-name-tag absolute"></div>
+            <div id="player-3-name" class="player-name-tag absolute"></div>
+
+            <!-- Player Benches -->
+            <div id="player-0-bench" class="absolute bottom-0 left-1/2 -translate-x-1/2"></div>
+            <div id="player-1-bench" class="absolute top-0 left-1/2 -translate-x-1/2"></div>
+            <div id="player-2-bench" class="absolute top-1/2 left-0 -translate-y-1/2"></div>
+            <div id="player-3-bench" class="absolute top-1/2 right-0 -translate-y-1/2"></div>
         </div>
-      </div>
-    </div>
-    <!-- Bottom Row Players -->
-    <div id="players-bottom" class="players-grid section">
-      <div class="player-seat" id="player-3">
-        <div class="player-name" id="name-3">Cathy</div>
-        <div class="hand" id="hand-3"></div>
-      </div>
-      <div class="player-seat" id="player-0">
-        <div class="player-name" id="name-0">You</div>
-        <div class="hand" id="hand-0"></div>
-      </div>
-    </div>
-    <!-- Controls -->
-    <div id="controls" class="section">
-      <button id="form-set-button">Form Set</button>
-      <button id="skip-turn-button">Draw Card &amp; Skip Turn</button>
-      <button id="sabotage-button">Sabotage Pending Set</button>
     </div>
   </div>
-  
-  <script>
-    // ASSET BASE & HELPER FUNCTIONS
+
+  <!-- Message Modal -->
+  <div id="message-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
+      <div class="bg-gray-800 rounded-lg shadow-xl p-6 text-center max-w-sm w-full">
+          <p id="modal-text" class="mb-4 text-lg text-white"></p>
+          <button id="modal-close-button" class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700">OK</button>
+      </div>
+  </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    // --- DOM ELEMENT REFERENCES ---
+    const get = (id) => document.getElementById(id);
+    const nameEntryScreen = get('name-entry-screen');
+    const gameContainer = get('game-container');
+    const gameBoard = get('game-board');
+    const controlsArea = get('controls-area');
+    const startGameButton = get('start-game-button');
+    const playerNameInput = get('player-name');
+    const difficultySelect = get('difficulty');
+    const formSetButton = get('form-set-button');
+    const skipTurnButton = get('skip-turn-button');
+    const sabotageButton = get('sabotage-button');
+    const logDiv = get('log');
+    const pendingSetDiv = get('pending-set');
+    const countdownDiv = get('countdown');
+    const deckCounter = get('deck-counter');
+    const deckImage = get('deck-image');
+    const messageModal = get('message-modal');
+    const modalText = get('modal-text');
+    const modalCloseButton = get('modal-close-button');
+
+    // --- ASSETS & CONFIGURATION ---
     const assetBaseURL = "https://raw.githubusercontent.com/harmanjohll/precipitate_assets/refs/heads/main/images/";
+    const cardBackURL = "https://raw.githubusercontent.com/harmanjohll/precipitate_assets/baf7839f5252ad2d888c97562683c1aac1e54254/images/back-of-card.png";
     const cationImages = {
-      "Ca2+": assetBaseURL + "Ca2%2B.PNG",
-      "Zn2+": assetBaseURL + "Zn2%2B.PNG",
-      "Pb2+": assetBaseURL + "Pb2%2B.PNG",
-      "Al3+": assetBaseURL + "Al3%2B.PNG",
-      "Fe2+": assetBaseURL + "Fe2%2B.PNG",
-      "Fe3+": assetBaseURL + "Fe3%2B.PNG",
-      "Cu2+": assetBaseURL + "Cu2%2B.PNG"
+        "Ca2+": assetBaseURL + "Ca2%2B.PNG", "Zn2+": assetBaseURL + "Zn2%2B.PNG", "Pb2+": assetBaseURL + "Pb2%2B.PNG",
+        "Al3+": assetBaseURL + "Al3%2B.PNG", "Fe2+": assetBaseURL + "Fe2%2B.PNG", "Fe3+": assetBaseURL + "Fe3%2B.PNG", "Cu2+": assetBaseURL + "Cu2%2B.PNG"
     };
     const ohImage = assetBaseURL + "OH-.PNG";
-    const reagentImages = {
-      "NaOH(aq)": assetBaseURL + "NaOH.PNG",
-      "NH3(aq)": assetBaseURL + "NH3.PNG"
-    };
+    const reagentImages = { "NaOH(aq)": assetBaseURL + "NaOH.PNG", "NH3(aq)": assetBaseURL + "NH3.PNG" };
     
-    function formatIon(ion) {
-      const match = ion.match(/^([A-Za-z]+)([0-9]+[+-])$/);
-      return match ? match[1] + "<sup>" + match[2] + "</sup>" : ion;
-    }
-    
-    function formatCard(card) {
-      if (card.type === "cation") return formatIon(card.ion) + " (s)";
-      if (card.type === "OH") return "OH<sup>-</sup> (aq)";
-      if (card.type === "reagent") return card.reagent;
-      return "";
-    }
-    
-    function getPrecipitateEquation(cationCard) {
-      const n = cationCard.requiredOH;
-      return formatIon(cationCard.ion) + " + " + n + "OH<sup>-</sup> → " +
-             formatIon(cationCard.ion) + "(OH)<sub>" + n + "</sub> (s)";
-    }
-    
-    // CONFIGURATION & DATA
-    const debugMode = true;
     const cationData = {
-      "Ca2+": { requiredOH: 2, soluble: { NaOH: false, NH3: false } },
-      "Zn2+": { requiredOH: 2, soluble: { NaOH: true, NH3: true } },
-      "Pb2+": { requiredOH: 2, soluble: { NaOH: true, NH3: false } },
-      "Al3+": { requiredOH: 3, soluble: { NaOH: true, NH3: false } },
-      "Fe2+": { requiredOH: 2, soluble: { NaOH: false, NH3: false } },
-      "Fe3+": { requiredOH: 3, soluble: { NaOH: false, NH3: false } },
-      "Cu2+": { requiredOH: 2, soluble: { NaOH: false, NH3: true } }
+        "Ca2+": { requiredOH: 2, soluble: { NaOH: false, NH3: false } }, "Zn2+": { requiredOH: 2, soluble: { NaOH: true, NH3: true } },
+        "Pb2+": { requiredOH: 2, soluble: { NaOH: true, NH3: false } }, "Al3+": { requiredOH: 3, soluble: { NaOH: true, NH3: false } },
+        "Fe2+": { requiredOH: 2, soluble: { NaOH: false, NH3: false } }, "Fe3+": { requiredOH: 3, soluble: { NaOH: false, NH3: false } },
+        "Cu2+": { requiredOH: 2, soluble: { NaOH: false, NH3: true } }
     };
-    
+
     let deck = [];
-    Object.keys(cationData).forEach(ion => {
-      for (let i = 0; i < 2; i++) {
-        deck.push({ type: "cation", ion: ion, requiredOH: cationData[ion].requiredOH, img: cationImages[ion] });
-      }
-    });
-    for (let i = 0; i < 18; i++) {
-      deck.push({ type: "OH", label: "OH⁻", img: ohImage });
-    }
-    for (let i = 0; i < 8; i++) {
-      deck.push({ type: "reagent", reagent: "NaOH(aq)", img: reagentImages["NaOH(aq)"] });
-      deck.push({ type: "reagent", reagent: "NH3(aq)", img: reagentImages["NH3(aq)"] });
-    }
-    
-    // GAME STATE
+    let discardPile = [];
     let players = [];
-    let currentPlayerIndex = 0;
+    let currentPlayerId = 0;
+    const turnOrder = [0, 2, 1, 3];
+    let turnIndex = 0;
+    let sabotageTimers = [];
+
     let humanSelection = { indices: [], cards: [] };
     const startingHandSize = 6;
     
@@ -251,463 +169,394 @@
     let pendingSetPlayer = null;
     let pendingSetCountdown = 0;
     let pendingSetInterval = null;
-    
-    // Update control buttons.
-    // Form Set and Draw/Skip are allowed only on human turn when no pending set exists.
-    // Sabotage is enabled at any time if an opponent's pending set exists.
-    function updateControls() {
-      let humanTurn = (currentPlayerIndex === 0);
-      document.getElementById('form-set-button').disabled = (!humanTurn || pendingSet != null);
-      document.getElementById('skip-turn-button').disabled = (!humanTurn || pendingSet != null);
-      // Sabotage is always enabled (if a pending set exists from an opponent).
-      document.getElementById('sabotage-button').disabled = false;
+    let gameActive = false;
+    let gameDifficulty = 'advanced';
+    let spectatorMode = true;
+
+    // --- Dynamic Sizing ---
+    const updateBoardSize = () => {
+        const size = gameBoard.clientWidth;
+        gameBoard.style.setProperty('--board-size', `${size}px`);
+    };
+    window.addEventListener('resize', updateBoardSize);
+
+    // --- GAME START ---
+    function initializeGame() {
+        gameActive = true;
+        
+        gameDifficulty = difficultySelect.value;
+        createDeck();
+        shuffleDeck(deck);
+        discardPile = [];
+
+        players = [
+            { id: 0, name: playerNameInput.value.trim() || "You", benchId: 'player-0-bench', nameId: 'player-0-name' },
+            { id: 1, name: "Alice", benchId: 'player-1-bench', nameId: 'player-1-name' },
+            { id: 2, name: "Beth", benchId: 'player-2-bench', nameId: 'player-2-name' },
+            { id: 3, name: "Cathy", benchId: 'player-3-bench', nameId: 'player-3-name' }
+        ];
+        
+        players.forEach(p => p.hand = deck.splice(0, startingHandSize));
+        
+        turnIndex = 0;
+        currentPlayerId = turnOrder[turnIndex];
+        humanSelection = { indices: [], cards: [] };
+        pendingSet = null;
+        if (pendingSetInterval) clearInterval(pendingSetInterval);
+        
+        logDiv.innerHTML = '';
+        logMessage(`<strong>Game started!</strong> Difficulty: ${gameDifficulty}.`);
+        logMessage(`It's <strong>your</strong> turn.`);
+        
+        setTimeout(() => {
+            updateBoardSize();
+            updateAllDisplays();
+        }, 0);
     }
     
-    // Update the pending set container.
-    function updateCommonTable() {
-      const pendingDiv = document.getElementById('pending-set');
-      const countdownDiv = document.getElementById('countdown');
-      pendingDiv.innerHTML = "";
-      if (pendingSet) {
-        pendingSet.forEach(card => {
-          const mini = document.createElement('div');
-          mini.className = 'mini-card';
-          if (card.img) {
-            const img = document.createElement('img');
-            img.src = card.img;
-            img.alt = formatCard(card);
-            mini.appendChild(img);
-          } else {
-            mini.innerHTML = formatCard(card);
-          }
-          pendingDiv.appendChild(mini);
-        });
-      }
-      countdownDiv.textContent = pendingSet ? "Confirming in: " + pendingSetCountdown + " sec" : "";
-    }
-    
-    // Append messages to the gamelog using a dummy element to force scrolling.
-    function logMessage(msg) {
-      const logDiv = document.getElementById('log');
-      const dummy = document.getElementById('dummy');
-      const p = document.createElement('p');
-      p.innerHTML = msg;
-      // Insert the new message just before the dummy element.
-      logDiv.insertBefore(p, dummy);
-      // Ensure the dummy is at the bottom.
-      logDiv.appendChild(dummy);
-      dummy.scrollIntoView({ behavior: 'smooth' });
-    }
-    
-    function getPlayerName(index) {
-      if (index === 0) {
-        const name = document.getElementById('player-name').value;
-        return name.trim() !== "" ? name : "You";
-      } else {
-        return players[index].name;
-      }
-    }
-    
-    function isMovePossibleForPlayer(player) {
-      for (const card of player.hand) {
-        if (card.type === "cation") {
-          const required = card.requiredOH;
-          const ohCards = player.hand.filter(c => c.type === "OH");
-          if (ohCards.length >= required) return true;
-        }
-      }
-      return false;
-    }
-    
-    function checkGameOver() {
-      if (deck.length > 0 || pendingSet) return false;
-      for (const player of players) {
-        if (isMovePossibleForPlayer(player)) return false;
-      }
-      return true;
-    }
-    
-    function declareWinner() {
-      let minCount = Infinity, winners = [];
-      for (const player of players) {
-        if (player.hand.length < minCount) {
-          minCount = player.hand.length;
-          winners = [player];
-        } else if (player.hand.length === minCount) {
-          winners.push(player);
-        }
-      }
-      logMessage("Game over! Winner: " + (winners.length === 1 ? winners[0].name : winners.map(p => p.name).join(", ")) + " with " + minCount + " card(s).");
-    }
-    
-    // Computer sabotage function.
-    function computerSabotage() {
-      if (!pendingSet) return false;
-      if (pendingSetPlayer === currentPlayerIndex) return false;
-      const cationCard = pendingSet.find(card => card.type === "cation");
-      if (!cationCard) return false;
-      const ionName = cationCard.ion;
-      let validReagent = null;
-      if (ionName === "Cu2+") validReagent = "NH3(aq)";
-      else if (ionName === "Zn2+") {
-        const hand = players[currentPlayerIndex].hand;
-        const hasNaOH = hand.some(card => card.type === "reagent" && card.reagent === "NaOH(aq)");
-        const hasNH3 = hand.some(card => card.type === "reagent" && card.reagent === "NH3(aq)");
-        if (hasNaOH) validReagent = "NaOH(aq)";
-        else if (hasNH3) validReagent = "NH3(aq)";
-      } else if (ionName === "Pb2+" || ionName === "Al3+") validReagent = "NaOH(aq)";
-      else if (ionName === "Ca2+" || ionName === "Fe2+" || ionName === "Fe3+") return false;
-      if (!validReagent) return false;
-      const hand = players[currentPlayerIndex].hand;
-      const reagentIndex = hand.findIndex(card => card.type === "reagent" && card.reagent === validReagent);
-      if (reagentIndex === -1) return false;
-      const reagentCard = hand.splice(reagentIndex, 1)[0];
-      logMessage(getPlayerName(currentPlayerIndex) + " sabotages " + getPlayerName(pendingSetPlayer) +
-                 "'s pending set with " + reagentCard.reagent + ".");
-      // Return the pending set back to the opponent.
-      players[pendingSetPlayer].hand = players[pendingSetPlayer].hand.concat(pendingSet);
-      clearInterval(pendingSetInterval);
-      pendingSet = null;
-      pendingSetPlayer = null;
-      updateCommonTable();
-      // Advance turn.
-      currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
-      updatePlayerDisplays();
-      return true;
-    }
-    
-    // Sabotage for human (uses same logic as computerSabotage but triggered by button).
-    function sabotagePending() {
-      if (!pendingSet) {
-        logMessage("No pending set to sabotage.");
-        return;
-      }
-      if (pendingSetPlayer === 0) {
-        logMessage("You cannot sabotage your own pending set.");
-        return;
-      }
-      const cationCard = pendingSet.find(card => card.type === "cation");
-      if (!cationCard) return;
-      const ionName = cationCard.ion;
-      let validReagent = null;
-      if (ionName === "Cu2+") validReagent = "NH3(aq)";
-      else if (ionName === "Zn2+") {
-        const hand = players[0].hand;
-        const hasNaOH = hand.some(card => card.type === "reagent" && card.reagent === "NaOH(aq)");
-        const hasNH3 = hand.some(card => card.type === "reagent" && card.reagent === "NH3(aq)");
-        if (hasNaOH) validReagent = "NaOH(aq)";
-        else if (hasNH3) validReagent = "NH3(aq)";
-      } else if (ionName === "Pb2+" || ionName === "Al3+") validReagent = "NaOH(aq)";
-      else if (ionName === "Ca2+" || ionName === "Fe2+" || ionName === "Fe3+") {
-        logMessage("No reagent can sabotage " + formatIon(ionName) + " precipitate.");
-        return;
-      }
-      if (!validReagent) {
-        logMessage("No valid reagent available for sabotage of " + formatIon(ionName));
-        return;
-      }
-      const hand = players[0].hand;
-      const reagentIndex = hand.findIndex(card => card.type === "reagent" && card.reagent === validReagent);
-      if (reagentIndex === -1) {
-        logMessage("You do not have " + validReagent + " to sabotage.");
-        return;
-      }
-      const reagentCard = hand.splice(reagentIndex, 1)[0];
-      // Return the pending set back to the opponent.
-      players[pendingSetPlayer].hand = players[pendingSetPlayer].hand.concat(pendingSet);
-      logMessage("You sabotage " + getPlayerName(pendingSetPlayer) +
-                 "'s pending set with " + reagentCard.reagent + ".");
-      clearInterval(pendingSetInterval);
-      pendingSet = null;
-      pendingSetPlayer = null;
-      updateCommonTable();
-      currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
-      updatePlayerDisplays();
-    }
-    
-    function isValidSet(selectedCards) {
-      const cationCard = selectedCards.find(card => card.type === "cation");
-      if (!cationCard) return false;
-      const required = cationCard.requiredOH;
-      const ohCards = selectedCards.filter(card => card.type === "OH");
-      return selectedCards.length === (1 + required) && ohCards.length === required;
-    }
-    
-    // Human action: Form Set. Allowed only if it's your turn and no pending set exists.
-    function formSet() {
-      if (currentPlayerIndex !== 0 || pendingSet != null) return;
-      if (isValidSet(humanSelection.cards)) {
-        const indices = humanSelection.indices.sort((a, b) => b - a);
-        indices.forEach(i => { players[0].hand.splice(i, 1); });
-        pendingSet = humanSelection.cards;
-        pendingSetPlayer = 0;
+    // --- UI & DISPLAY ---
+    function updateAllDisplays() {
+        players.forEach(player => updatePlayerDisplay(player.id));
         updateCommonTable();
-        startCountdown(7);
-        logMessage("You have formed a pending set.");
-      } else {
-        logMessage("Selected cards do not form a valid set.");
-      }
-      humanSelection = { indices: [], cards: [] };
-      updatePlayerDisplays();
+        updateControls();
+        updateDeckCounter();
     }
     
-    function startCountdown(seconds) {
-      pendingSetCountdown = seconds;
-      updateCommonTable();
-      if (pendingSetInterval) clearInterval(pendingSetInterval);
-      pendingSetInterval = setInterval(() => {
-        pendingSetCountdown--;
-        updateCommonTable();
-        if (pendingSetCountdown <= 0) {
-          clearInterval(pendingSetInterval);
-          finalizePendingSet();
+    function updateDeckCounter() {
+        deckCounter.textContent = `Deck: ${deck.length}`;
+        deckImage.style.display = deck.length > 0 ? 'block' : 'none';
+    }
+
+    function updatePlayerDisplay(playerId) {
+        const player = players.find(p => p.id === playerId);
+        const benchDiv = get(player.benchId);
+        const nameDiv = get(player.nameId);
+        if (!benchDiv || !nameDiv) return;
+
+        benchDiv.innerHTML = '';
+        benchDiv.className = 'absolute flex items-center justify-center';
+        
+        nameDiv.innerHTML = '';
+        nameDiv.className = 'player-name-tag absolute p-1 px-3 rounded-full bg-black/70 text-white text-xs md:text-sm font-bold z-20 whitespace-nowrap';
+        
+        nameDiv.textContent = `${player.name} (${player.hand.length})`;
+        if (player.id === currentPlayerId && !pendingSet) {
+            nameDiv.classList.add('ring-2', 'ring-green-400');
+        } else if (pendingSet && pendingSetPlayer === player.id) {
+            nameDiv.classList.add('ring-2', 'ring-blue-400');
         }
-      }, 1000);
-    }
-    
-    // Finalize the pending set and pass the turn.
-    function finalizePendingSet() {
-      if (pendingSet) {
-        if (pendingSetPlayer === 0) {
-          logMessage("You have confirmed your pending set.");
+        
+        const handDiv = document.createElement('div');
+        handDiv.className = 'player-hand flex items-center relative';
+        handDiv.id = `player-${player.id}-hand`;
+
+        if (player.id === 2 || player.id === 3) {
+            handDiv.classList.add('flex-col');
+            handDiv.style.gap = `calc(var(--board-size) * -0.11)`;
         } else {
-          logMessage(getPlayerName(pendingSetPlayer) + "'s pending set is finalized.");
+            handDiv.classList.add('flex-row');
+            handDiv.style.gap = `calc(var(--board-size) * 0.01)`;
         }
+
+        player.hand.forEach((card, i) => {
+            const cardEl = document.createElement('div');
+            cardEl.className = 'card rounded-lg overflow-hidden shadow-lg bg-gray-500';
+            const showFront = spectatorMode || player.id === 0;
+            cardEl.innerHTML = `<img src="${showFront ? card.img : cardBackURL}" class="w-full h-full object-cover">`;
+
+            if (player.id === 0) {
+                cardEl.id = `card-0-${i}`;
+                cardEl.classList.add('cursor-pointer');
+                cardEl.onclick = () => toggleHumanCard(i);
+                if (humanSelection.indices.includes(i)) cardEl.classList.add('selected');
+            }
+            if (player.id === 2) cardEl.style.transform = 'rotate(90deg)';
+            if (player.id === 3) cardEl.style.transform = 'rotate(-90deg)';
+
+            handDiv.appendChild(cardEl);
+        });
+        
+        if (player.id === 0) { benchDiv.style.cssText = 'bottom: 0; left: 50%; transform: translateX(-50%) translateY(48%);'; nameDiv.style.cssText = 'bottom: 13.5%; left: 50%; transform: translateX(-50%);'; }
+        else if (player.id === 1) { benchDiv.style.cssText = 'top: 0; left: 50%; transform: translateX(-50%) translateY(-48%);'; nameDiv.style.cssText = 'top: 13.5%; left: 50%; transform: translateX(-50%);'; }
+        else if (player.id === 2) { benchDiv.style.cssText = 'top: 50%; left: 0; transform: translateY(-50%) translateX(-48%);'; nameDiv.style.cssText = 'left: 13.5%; top: 50%; transform: translateY(-50%) rotate(-90deg);'; }
+        else if (player.id === 3) { benchDiv.style.cssText = 'top: 50%; right: 0; transform: translateY(-50%) translateX(48%);'; nameDiv.style.cssText = 'right: 13.5%; top: 50%; transform: translateY(-50%) rotate(90deg);'; }
+        
+        benchDiv.appendChild(handDiv);
+    }
+    
+    function updateCommonTable() {
+        pendingSetDiv.innerHTML = "";
+        if (pendingSet) {
+            pendingSetDiv.classList.remove('items-center');
+            const player = players.find(p => p.id === pendingSetPlayer);
+            countdownDiv.innerHTML = `Set by <span class="text-yellow-300">${player.name}</span><br>Confirming: <span class="text-red-400">${pendingSetCountdown}</span>s`;
+            pendingSet.forEach(card => {
+                const miniCard = document.createElement('div');
+                miniCard.className = 'w-10 h-16 rounded-md overflow-hidden shadow-sm flex-shrink-0';
+                miniCard.innerHTML = `<img src="${card.img}" class="w-full h-full object-cover">`;
+                pendingSetDiv.appendChild(miniCard);
+            });
+        } else {
+            pendingSetDiv.classList.add('items-center');
+            countdownDiv.textContent = "";
+            pendingSetDiv.innerHTML = `<span class="text-white/70">Table is clear</span>`;
+        }
+    }
+
+    function updateControls() {
+        const isHumanTurn = (currentPlayerId === 0);
+        formSetButton.disabled = !isHumanTurn || pendingSet !== null;
+        skipTurnButton.disabled = !isHumanTurn || pendingSet !== null;
+        sabotageButton.disabled = pendingSet === null || pendingSetPlayer === 0;
+    }
+
+    // --- UTILITY & HELPER FUNCTIONS ---
+    const createDeck = () => { deck = []; Object.keys(cationData).forEach(ion => { for (let i=0; i<2; i++) deck.push({ type: "cation", ion, requiredOH: cationData[ion].requiredOH, img: cationImages[ion] }); }); for (let i=0; i<20; i++) deck.push({ type: "OH", img: ohImage }); for (let i=0; i<4; i++) { deck.push({ type: "reagent", reagent: "NaOH(aq)", img: reagentImages["NaOH(aq)"] }); deck.push({ type: "reagent", reagent: "NH3(aq)", img: reagentImages["NH3(aq)"] }); } };
+    const shuffleDeck = (array) => { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; } };
+    const showMessage = (msg) => { modalText.textContent = msg; messageModal.classList.remove('hidden'); messageModal.classList.add('flex'); };
+    const logMessage = (msg) => { const p = document.createElement('p'); p.innerHTML = msg; logDiv.appendChild(p); logDiv.scrollTop = logDiv.scrollHeight; };
+    const formatIon = (ion) => ion.replace(/(\d+)([+-])/g, '<sup>$1$2</sup>');
+    const isValidSet = (cards) => { if (!cards || cards.length === 0) return false; const cationCards = cards.filter(c => c.type === "cation"); const ohCards = cards.filter(c => c.type === "OH"); if(cationCards.length !== 1) return false; const requiredOH = cationCards[0].requiredOH; return cards.length === (1 + requiredOH) && ohCards.length === requiredOH; };
+    
+    // --- GAME LOGIC FUNCTIONS ---
+    function toggleHumanCard(index) {
+        if (!gameActive) return;
+        const pos = humanSelection.indices.indexOf(index);
+        const cardEl = document.getElementById(`card-0-${index}`);
+        if (!cardEl) return;
+        if (pos >= 0) { humanSelection.indices.splice(pos, 1); cardEl.classList.remove('selected'); }
+        else { humanSelection.indices.push(index); cardEl.classList.add('selected'); }
+        humanSelection.cards = players[0].hand.filter((_, i) => humanSelection.indices.includes(i));
+    }
+
+    function formSet() {
+        if (currentPlayerId !== 0 || pendingSet) return;
+        if (!isValidSet(humanSelection.cards)) { showMessage("The selected cards do not form a valid precipitate set."); return; }
+        
+        pendingSet = [...humanSelection.cards];
+        pendingSetPlayer = currentPlayerId;
+        
+        humanSelection.indices.sort((a, b) => b - a).forEach(i => players[0].hand.splice(i, 1));
+        humanSelection = { indices: [], cards: [] };
+        
+        logMessage(`<strong>You</strong> formed a pending set.`);
+        startCountdown(7);
+    }
+
+    function drawCardAndSkip() {
+        const player = players.find(p => p.id === currentPlayerId);
+        if (deck.length > 0) {
+            player.hand.push(deck.pop());
+            logMessage(`<strong>${player.name}</strong> drew a card.`);
+            if (deck.length === 0) {
+                endGame();
+                return;
+            }
+        } else { 
+            logMessage("Deck is empty.");
+        }
+        logMessage(`<strong>${player.name}</strong> skipped their turn.`);
+        endTurn();
+    }
+    
+    function sabotageAttempt(saboteurId) {
+        if (!pendingSet) return false;
+        const saboteur = players.find(p => p.id === saboteurId);
+        if (pendingSetPlayer === saboteur.id) { 
+            if(saboteur.id === 0) showMessage("You cannot sabotage your own set."); 
+            return false;
+        }
+
+        const cationCard = pendingSet.find(card => card.type === "cation"); if (!cationCard) return false;
+        const ionName = cationCard.ion, cationInfo = cationData[ionName];
+        
+        const reagentCard = saboteur.hand.find(card => 
+            (cationInfo.soluble.NaOH && card.reagent === 'NaOH(aq)') || 
+            (cationInfo.soluble.NH3 && card.reagent === 'NH3(aq)')
+        );
+        
+        if (!reagentCard) { 
+            if(saboteur.id === 0) showMessage("You don't have the correct reagent to sabotage this set.");
+            return false; 
+        }
+
+        // --- Sabotage is successful ---
+        const opponent = players.find(p => p.id === pendingSetPlayer);
+        const setThatWasSabotaged = [...pendingSet];
+        
+        clearPendingSet(); // Clear timers and set info immediately
+        
+        const reagentIndex = saboteur.hand.indexOf(reagentCard);
+        saboteur.hand.splice(reagentIndex, 1);
+
+        logMessage(`<strong>${saboteur.name}</strong> sabotaged <strong>${opponent.name}'s</strong> set!`);
+        
+        opponent.hand.push(...setThatWasSabotaged);
+        discardPile.push(reagentCard, ...setThatWasSabotaged);
+        
+        // The saboteur gets the next turn
+        turnIndex = turnOrder.indexOf(saboteur.id);
+        currentPlayerId = saboteur.id;
+        logMessage(`The turn now passes to <strong>${saboteur.name}</strong>.`);
+        updateAllDisplays();
+        if (currentPlayerId !== 0) setTimeout(processComputerTurn, 2000);
+        return true;
+    }
+
+    function startCountdown(seconds) {
+        pendingSetCountdown = seconds;
+        if (pendingSetInterval) clearInterval(pendingSetInterval);
+        sabotageTimers.forEach(clearTimeout);
+        sabotageTimers = [];
+
+        updateAllDisplays();
+
+        pendingSetInterval = setInterval(() => {
+            pendingSetCountdown--;
+            if (pendingSetCountdown <= 0) {
+                finalizePendingSet();
+            }
+            updateCommonTable();
+        }, 1000);
+
+        players.forEach(p => {
+            if (p.id !== pendingSetPlayer && p.id !== 0) { // AI players who didn't form the set
+                let delay;
+                switch(gameDifficulty) {
+                    case 'beginner': delay = 3000 + Math.random() * 3000; break;
+                    case 'intermediate': delay = 2000 + Math.random() * 2000; break;
+                    default: delay = 1000 + Math.random() * 1500; break;
+                }
+                const timerId = setTimeout(() => sabotageAttempt(p.id), delay);
+                sabotageTimers.push(timerId);
+            }
+        });
+    }
+    
+    function clearPendingSet() {
+        clearInterval(pendingSetInterval);
+        sabotageTimers.forEach(clearTimeout);
+        sabotageTimers = [];
         pendingSet = null;
         pendingSetPlayer = null;
-        updateCommonTable();
-        currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
-        updatePlayerDisplays();
-        if (currentPlayerIndex !== 0) {
-          setTimeout(processComputerTurn, 1500);
+        updateAllDisplays();
+    }
+
+    function finalizePendingSet() {
+        if (!pendingSet) return;
+        const playerWhoSet = players.find(p => p.id === pendingSetPlayer);
+        logMessage(`<strong class="text-green-400">${playerWhoSet.name}'s</strong> set is confirmed!`);
+        discardPile.push(...pendingSet);
+        
+        if (playerWhoSet.hand.length === 0) { endGame(playerWhoSet); return; }
+        
+        // Correctly pass the turn to the next player in sequence
+        turnIndex = (turnOrder.indexOf(playerWhoSet.id) + 1) % turnOrder.length;
+        currentPlayerId = turnOrder[turnIndex];
+        
+        clearPendingSet();
+
+        logMessage(`It's now <strong>${players.find(p=>p.id === currentPlayerId).name}'s</strong> turn.`);
+        if (currentPlayerId !== 0) setTimeout(processComputerTurn, 2000);
+    }
+
+    function endTurn() {
+        turnIndex = (turnIndex + 1) % turnOrder.length;
+        currentPlayerId = turnOrder[turnIndex];
+        logMessage(`It's now <strong>${players.find(p=>p.id === currentPlayerId).name}'s</strong> turn.`);
+        updateAllDisplays();
+        if (currentPlayerId !== 0) setTimeout(processComputerTurn, 2000);
+    }
+
+    function endGame(winner = null) {
+        gameActive = false;
+        clearPendingSet();
+
+        if (winner) {
+            showMessage(`${winner.name} won by discarding all their cards!`);
+            logMessage(`<strong>GAME OVER! Winner: ${winner.name}</strong>`);
         } else {
-          logMessage("It's your turn.");
-          updateControls();
+            logMessage(`The deck is empty! The game is over.`);
+            let minCards = Infinity;
+            let winners = [];
+            players.forEach(p => {
+                if (p.hand.length < minCards) {
+                    minCards = p.hand.length;
+                    winners = [p];
+                } else if (p.hand.length === minCards) {
+                    winners.push(p);
+                }
+            });
+            const winnerNames = winners.map(w => w.name).join(' & ');
+            showMessage(`${winnerNames} won with the fewest cards! (${minCards})`);
+            logMessage(`<strong>GAME OVER! Winner: ${winnerNames}</strong>`);
         }
-      }
+        
+        controlsArea.style.display = 'none';
     }
     
-    // Human action: Draw Card & Skip Turn. Allowed only if it's your turn and no pending set exists.
-    function drawCardAndSkip() {
-      if (currentPlayerIndex !== 0 || pendingSet != null) return;
-      if (deck.length > 0) {
-        const drawn = deck.pop();
-        players[currentPlayerIndex].hand.push(drawn);
-        logMessage("You have drawn a card and skipped your turn.");
-      } else {
-        logMessage("You draw no card (deck is empty) and skip your turn.");
-      }
-      updatePlayerDisplays();
-      currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
-      updatePlayerDisplays();
-      if (currentPlayerIndex !== 0) {
-        setTimeout(processComputerTurn, 1500);
-      } else {
-        logMessage("It's your turn.");
-        updateControls();
-      }
-    }
-    
-    // Computer turn processing.
     function processComputerTurn() {
-      if (currentPlayerIndex === 0) {
-        logMessage("It's your turn.");
-        updateControls();
-        return;
-      }
-      // If there's a pending set from an opponent, attempt sabotage.
-      if (pendingSet != null && pendingSetPlayer !== currentPlayerIndex) {
-        if (computerSabotage()) return;
-      }
-      if (pendingSet != null) return; // Otherwise, wait for countdown to finish.
-      const computer = players[currentPlayerIndex];
-      let candidateSet = null;
-      for (let i = 0; i < computer.hand.length; i++) {
-        const card = computer.hand[i];
-        if (card.type === "cation") {
-          const ohCards = computer.hand.filter(c => c.type === "OH");
-          if (ohCards.length >= card.requiredOH) {
-            candidateSet = [card];
-            let count = 0;
-            for (let j = 0; j < computer.hand.length && count < card.requiredOH; j++) {
-              if (computer.hand[j].type === "OH") {
-                candidateSet.push(computer.hand[j]);
-                count++;
-              }
+        const computer = players.find(p => p.id === currentPlayerId);
+        logMessage(`<strong>${computer.name}</strong> is thinking...`);
+
+        if (pendingSet) { // If a set is pending, the only option is to try and sabotage
+             sabotageAttempt(computer.id);
+             // If sabotage fails, the computer effectively "passes" on sabotage.
+             // The turn should then go to the next player.
+             setTimeout(endTurn, 1000);
+             return;
+        }
+
+        // Normal turn logic
+        let actionProbability;
+        switch(gameDifficulty) {
+            case 'beginner': actionProbability = 0.5; break;
+            case 'intermediate': actionProbability = 0.8; break;
+            default: actionProbability = 1.0; break;
+        }
+        if (Math.random() <= actionProbability && computerAttemptFormSet(computer)) {
+            return;
+        }
+        
+        drawCardAndSkip();
+    }
+
+     function computerAttemptFormSet(computer) {
+        let cationCardInSet = null, ohCardsForSet = [], setCardIndices = [];
+        for (let i = 0; i < computer.hand.length; i++) {
+            const potentialCation = computer.hand[i];
+            if (potentialCation.type === 'cation') {
+                const requiredOH = potentialCation.requiredOH, availableOHIndices = [];
+                for(let j = 0; j < computer.hand.length; j++) { if (i === j) continue; if (computer.hand[j].type === 'OH') availableOHIndices.push(j); }
+                if (availableOHIndices.length >= requiredOH) {
+                    cationCardInSet = potentialCation; setCardIndices.push(i);
+                    const ohIndicesForSet = availableOHIndices.slice(0, requiredOH); setCardIndices.push(...ohIndicesForSet);
+                    ohCardsForSet = ohIndicesForSet.map(idx => computer.hand[idx]); break;
+                }
             }
-            break;
-          }
         }
-      }
-      if (candidateSet) {
-        if (Math.random() <= 0.8) {
-          candidateSet.forEach(card => {
-            const idx = computer.hand.indexOf(card);
-            if (idx !== -1) computer.hand.splice(idx, 1);
-          });
-          pendingSet = candidateSet;
-          pendingSetPlayer = currentPlayerIndex;
-          updateCommonTable();
-          startCountdown(7);
-          logMessage(getPlayerName(currentPlayerIndex) + " forms a pending set.");
-        } else {
-          if (deck.length > 0) {
-            const drawn = deck.pop();
-            computer.hand.push(drawn);
-            logMessage(getPlayerName(currentPlayerIndex) + " draws a card and skips turn.");
-          }
-          candidateSet = null;
-          currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
-          updatePlayerDisplays();
-          setTimeout(processComputerTurn, 1500);
-        }
-      } else {
-        if (deck.length > 0) {
-          const drawn = deck.pop();
-          computer.hand.push(drawn);
-          logMessage(getPlayerName(currentPlayerIndex) + " draws a card and skips turn.");
-        }
-        currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
-        updatePlayerDisplays();
-        setTimeout(processComputerTurn, 1500);
-      }
-      updatePlayerDisplays();
-      if (checkGameOver()) {
-        declareWinner();
-        return;
-      }
+        if (cationCardInSet) {
+            pendingSet = [cationCardInSet, ...ohCardsForSet]; pendingSetPlayer = computer.id;
+            setCardIndices.sort((a, b) => b - a).forEach(index => computer.hand.splice(index, 1));
+            logMessage(`<strong>${computer.name}</strong> formed a pending set.`);
+            startCountdown(7); 
+            return true;
+        } return false;
     }
-    
-    // Update players' displays and active highlights.
-    function updatePlayerDisplays() {
-      // Update human player's hand (player-0)
-      const handDiv0 = document.getElementById('hand-0');
-      handDiv0.innerHTML = '';
-      players[0].hand.forEach((card, idx) => {
-        const cardDiv = document.createElement('div');
-        cardDiv.className = 'card';
-        if (card.img) {
-          const img = document.createElement('img');
-          img.src = card.img;
-          img.alt = formatCard(card);
-          img.style.width = "100%";
-          img.style.height = "100%";
-          cardDiv.appendChild(img);
-        } else {
-          cardDiv.innerHTML = formatCard(card);
-        }
-        // Allow card selection (for sabotage) even if it isn't your turn.
-        cardDiv.addEventListener('click', function() {
-          toggleHumanCard(idx);
-        });
-        if (humanSelection.indices.includes(idx)) cardDiv.classList.add('selected');
-        handDiv0.appendChild(cardDiv);
-      });
-      // Update computer players (player-1, player-2, player-3)
-      for (let i = 1; i < players.length; i++) {
-        const handDiv = document.getElementById('hand-' + i);
-        handDiv.innerHTML = '';
-        players[i].hand.forEach(card => {
-          const cardDiv = document.createElement('div');
-          cardDiv.className = 'card';
-          if (debugMode && card.img) {
-            const img = document.createElement('img');
-            img.src = card.img;
-            img.alt = formatCard(card);
-            img.style.width = "100%";
-            img.style.height = "100%";
-            cardDiv.appendChild(img);
-          } else {
-            cardDiv.textContent = "Card";
-          }
-          handDiv.appendChild(cardDiv);
-        });
-      }
-      // Apply active highlight for each player's container.
-      for (let i = 0; i < players.length; i++) {
-        const playerDiv = document.getElementById('player-' + i);
-        if (playerDiv) {
-          if (i === currentPlayerIndex) playerDiv.classList.add('active-player');
-          else playerDiv.classList.remove('active-player');
-        }
-      }
-      updateControls();
-    }
-    
-    function toggleHumanCard(index) {
-      const hand = players[0].hand;
-      const pos = humanSelection.indices.indexOf(index);
-      if (pos >= 0) {
-        humanSelection.indices.splice(pos, 1);
-      } else {
-        humanSelection.indices.push(index);
-      }
-      humanSelection.cards = humanSelection.indices.map(i => hand[i]);
-      updatePlayerDisplays();
-    }
-    
-    function initializeGame() {
-      players = [];
-      const humanName = document.getElementById('player-name').value.trim() || "You";
-      players.push({ id: 0, hand: [], completedSets: [], name: humanName });
-      for (let i = 1; i < 4; i++) {
-        const names = ["Alice", "Beth", "Cathy"];
-        players.push({ id: i, hand: [], completedSets: [], name: names[i-1] });
-      }
-      // Deal players: Top row: players[1] and players[2]; Bottom row: players[3] and players[0]
-      let fullDeck = deck.slice();
-      shuffleDeck(fullDeck);
-      for (let i = 0; i < startingHandSize; i++) {
-        for (let p = 0; p < players.length && fullDeck.length > 0; p++) {
-          players[p].hand.push(fullDeck.pop());
-        }
-      }
-      deck = fullDeck;
-      currentPlayerIndex = 0;
-      humanSelection = { indices: [], cards: [] };
-      pendingSet = null;
-      pendingSetPlayer = null;
-      pendingSetCountdown = 0;
-      if (pendingSetInterval) clearInterval(pendingSetInterval);
-      console.log("Game initialized. It's your turn.");
-      updatePlayerDisplays();
-      updateCommonTable();
-    }
-    
-    function shuffleDeck(arr) {
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-    }
-    
-    document.getElementById('start-game-button').addEventListener('click', function() {
-      initializeGame();
+
+    // --- EVENT LISTENERS ---
+    startGameButton.addEventListener('click', () => {
+        nameEntryScreen.classList.add('hidden');
+        gameContainer.classList.remove('hidden');
+        initializeGame();
     });
-    
-    document.getElementById('player-name').addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') document.getElementById('start-game-button').click();
-    });
-    
-    document.getElementById('form-set-button').addEventListener('click', function() {
-      if (currentPlayerIndex === 0 && pendingSet == null) formSet();
-      if (currentPlayerIndex !== 0) setTimeout(processComputerTurn, 1500);
-    });
-    
-    document.getElementById('skip-turn-button').addEventListener('click', function() {
-      if (currentPlayerIndex === 0 && pendingSet == null) drawCardAndSkip();
-      if (currentPlayerIndex !== 0) setTimeout(processComputerTurn, 1500);
-    });
-    
-    // Sabotage button works at any time.
-    document.getElementById('sabotage-button').addEventListener('click', function() {
-      sabotagePending();
-      if (currentPlayerIndex !== 0 && pendingSet == null) setTimeout(processComputerTurn, 1500);
-    });
-    
-    window.addEventListener('unload', () => {
-      if (pendingSetInterval) clearInterval(pendingSetInterval);
-    });
-  </script>
+    playerNameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') startGameButton.click(); });
+    formSetButton.addEventListener('click', formSet);
+    skipTurnButton.addEventListener('click', drawCardAndSkip);
+    sabotageButton.addEventListener('click', () => sabotageAttempt(0));
+    modalCloseButton.addEventListener('click', () => { messageModal.classList.add('hidden'); messageModal.remove('flex'); });
+
+});
+</script>
 </body>
 </html>
